@@ -1,11 +1,11 @@
 package com.mugo.glossarist
 
 import android.app.Application
-import com.mugo.glossarist.localization.locale.LocaleCode
-import com.mugo.glossarist.localization.manager.Strings
-import com.mugo.glossarist.localization.models.I18nConfig
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import io.github.lazarusmugo.glossarist.localization.locale.LocaleCode
+import io.github.lazarusmugo.glossarist.localization.manager.Strings
+import io.github.lazarusmugo.glossarist.localization.models.I18nConfig
 
 class MyApplication : Application() {
     override fun onCreate() {
