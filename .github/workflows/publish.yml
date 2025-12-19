@@ -1,23 +1,60 @@
-name: Publish & Bump Version
+name: Release & Publish
 
 on:
-  release:
-    types: [ published, prereleased ]
+  push:
+    branches:
+      - main
 
 jobs:
+  bump-version:
+    name: Bump Version with Commitizen
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.cz.outputs.version }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump Version with Commitizen
+        id: cz
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          push: true
+          commit: true
+          changelog: true
+          prerelease: alpha
+
+      - name: Print Version
+        run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
+
   build-and-publish:
     name: Build and Publish to Maven Central
-    if: github.event.release.author.login != 'github-actions[bot]'
+    needs: bump-version
+    if: needs.bump-version.outputs.version != ''
     runs-on: macOS-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Build all targets
+        run: ./gradlew build --no-configuration-cache
 
       - name: Publish to Maven Central
         run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
@@ -28,22 +65,10 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
 
-  bump-version:
-    name: Bump Version with Commitizen
-    needs: build-and-publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
-          fetch-depth: 0
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Run Commitizen
-        id: cz
-        uses: commitizen-tools/commitizen-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit: true
-          push: true
-          changelog: true
+          tag_name: ${{ needs.bump-version.outputs.version }}
+          body_path: CHANGELOG.md
+          prerelease: true
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,4 +1,4 @@
-package com.mugo.glossarist.localization.locale
+package io.github.lazarusmugo.glossarist.localization.locale
 
 import java.util.Locale
 

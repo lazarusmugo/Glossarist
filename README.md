@@ -22,7 +22,7 @@ complex setup—just clean Kotlin code.
 ```kotlin
 // In your shared module's build.gradle.kts
 dependencies {
-    implementation("com.mugo.glossarist:glossarist:x.y.z")
+    implementation("io.github.lazarusmugo:localization:x.y.z")
 }
 ```
 
