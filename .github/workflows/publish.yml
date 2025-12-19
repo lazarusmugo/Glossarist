@@ -1,21 +1,53 @@
-name: Publish to Maven Central
+name: Release & Publish
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - main
 
 permissions:
   contents: write
   packages: write
   pull-requests: write
 
+
 jobs:
+  bump-version:
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.cz.outputs.version }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump Version with Commitizen
+        id: cz
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          push: false
+          commit: true
+          changelog: true
+          prerelease: alpha
+
+      - name: Print Version
+        run: echo "Bumped to version ${{ steps.cz.outputs.version }}"
+
   build-and-publish:
+    needs: bump-version
+    if: needs.bump-version.outputs.version != ''
     runs-on: macOS-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Pull latest changes
+        run: git pull origin main
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -40,9 +72,14 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
 
+      - name: Push version bump
+        run: |
+          git push origin main --tags
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ needs.bump-version.outputs.version }}
           body_path: CHANGELOG.md
           prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
