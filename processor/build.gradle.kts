@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
 
     id("glossarist-logger")
-    id("glossarist-publish")
+//    id("glossarist-publish")
 }
 
 kotlin {
