@@ -1,8 +1,12 @@
 name: Publish to Maven Central
+
 on:
-  push:
-    tags:
-      - '*'
+  workflow_run:
+    workflows: [ "Bump Version" ]
+    types:
+      - completed
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -12,10 +16,16 @@ env:
 
 jobs:
   build-and-publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: macOS-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Pull latest changes
+        run: git pull origin main --tags
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -43,6 +53,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.workflow_run.head_branch }}
           body_path: CHANGELOG.md
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
