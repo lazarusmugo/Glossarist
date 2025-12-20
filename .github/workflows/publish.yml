@@ -27,6 +27,13 @@ jobs:
       - name: Pull latest changes
         run: git pull origin main --tags
 
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $TAG"  
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -53,7 +60,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.workflow_run.head_branch }}
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: ${{ steps.get_tag.outputs.tag }}
           body_path: CHANGELOG.md
-          prerelease: true
+          prerelease: ${{ contains(steps.get_tag.outputs.tag, 'alpha') || contains(steps.get_tag.outputs.tag, 'beta') || contains(steps.get_tag.outputs.tag, 'rc') }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
