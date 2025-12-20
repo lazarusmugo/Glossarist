@@ -29,7 +29,7 @@ jobs:
           cache-read-only: false
 
       - name: Build all targets
-        run: ./gradlew build --no-configuration-cache
+        run: ./gradlew build
 
       - name: Publish to Maven Central
         run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
