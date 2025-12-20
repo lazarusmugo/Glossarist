@@ -1,3 +1,9 @@
+## 0.1.0-alpha.5 (2025-12-20)
+
+### Fix
+
+- updates the release workflow
+
 ## 0.1.0-alpha.4 (2025-12-20)
 
 ### Fix
