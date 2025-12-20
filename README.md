@@ -19,10 +19,15 @@ complex setup—just clean Kotlin code.
 
 ## Installation
 
+Add to your `build.gradle.kts`:
+
 ```kotlin
-// In your shared module's build.gradle.kts
-dependencies {
-    implementation("io.github.lazarusmugo:localization:x.y.z")
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("io.github.lazarusmugo:glossarist:<latest-version>")
+        }
+    }
 }
 ```
 
